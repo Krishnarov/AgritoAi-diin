@@ -102,7 +102,13 @@ export default function AdminPanel() {
     }
 
     const map = L.map(miniMapRef.current, { zoomControl: true, attributionControl: false });
-    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", { maxZoom: 19 }).addTo(map);
+    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", { 
+      maxZoom: 20,
+      maxNativeZoom: 18 
+    }).addTo(map);
+    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}", {
+      maxZoom: 20
+    }).addTo(map);
 
     const poly = L.geoJSON(selected.geometry, {
       style: { color: "#22c55e", fillColor: "#22c55e", fillOpacity: 0.2, weight: 3 },

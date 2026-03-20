@@ -57,7 +57,13 @@ function MiniMap({ geometry }) {
     }
 
     const map = L.map(ref.current, { zoomControl: true, attributionControl: false });
-    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", { maxZoom: 19 }).addTo(map);
+    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", { 
+      maxZoom: 20,
+      maxNativeZoom: 18 
+    }).addTo(map);
+    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}", {
+      maxZoom: 20
+    }).addTo(map);
     const poly = L.geoJSON(geometry, {
       style: { color: "#facc15", fillColor: "#facc15", fillOpacity: 0.2, weight: 3 },
     }).addTo(map);

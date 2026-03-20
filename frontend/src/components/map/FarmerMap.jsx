@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, forwardRef, useImperativeHandle } from "react";
 import L from "leaflet";
 import "leaflet-draw";
 import "leaflet-draw/dist/leaflet.draw.css";
@@ -53,7 +53,7 @@ const EMPTY_FORM = {
   khasaraFile: null,
 };
 
-export default function FarmerMap({ farmerMode = true }) {
+const FarmerMap = forwardRef(({ farmerMode = true }, ref) => {
   const mapRef    = useRef(null);
   const mapInst   = useRef(null);
   const drawFG    = useRef(null);
@@ -61,6 +61,7 @@ export default function FarmerMap({ farmerMode = true }) {
   const plotLayers = useRef({});
   const initRef   = useRef(false);
   const isFitting = useRef(false);
+  const boundaryLayer = useRef(null);
 
   const [step, setStep]               = useState("idle"); // idle | drawing | form | submitting | done
   const [drawnLatLngs, setDrawnLatLngs] = useState(null);
@@ -131,7 +132,14 @@ export default function FarmerMap({ farmerMode = true }) {
     if (initRef.current) return;
     initRef.current = true;
     const map = L.map(mapRef.current, { center: [16.8298, 74.8664], zoom: 16, zoomControl: false });
-    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", { maxZoom: 19 }).addTo(map);
+    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", { 
+      maxZoom: 20,
+      maxNativeZoom: 18 
+    }).addTo(map);
+    // Add labels layer
+    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}", {
+      maxZoom: 20
+    }).addTo(map);
     L.control.zoom({ position: "bottomright" }).addTo(map);
     const fg = new L.FeatureGroup().addTo(map);
     drawFG.current = fg;
@@ -168,6 +176,33 @@ export default function FarmerMap({ farmerMode = true }) {
     setTimeout(() => { loadMapPlots(false); if (farmerMode) loadMyPlots(); }, 500);
     return () => { map.remove(); mapInst.current = null; initRef.current = false; };
   }, [loadMapPlots, loadMyPlots, farmerMode]);
+
+  useImperativeHandle(ref, () => ({
+    flyTo: (lat, lng, zoom = 14) => {
+      if (mapInst.current) {
+        mapInst.current.flyTo([lat, lng], zoom, { duration: 2 });
+      }
+    },
+    displayBoundary: (geojson) => {
+        if (!mapInst.current || !geojson) return;
+        if (boundaryLayer.current) boundaryLayer.current.remove();
+        
+        boundaryLayer.current = L.geoJSON(geojson, {
+            style: { 
+                color: "#22c55e", 
+                fillColor: "#22c55e", 
+                fillOpacity: 0.1, 
+                weight: 2,
+                dashArray: "5, 10" 
+            }
+        }).addTo(mapInst.current);
+        
+        const bounds = boundaryLayer.current.getBounds();
+        if (bounds.isValid()) {
+            mapInst.current.flyToBounds(bounds, { padding: [50, 50], duration: 2 });
+        }
+    }
+  }));
 
   useEffect(() => {
     if (farmerMode && myPlots.length) renderPlots(myPlots, true);
@@ -399,4 +434,6 @@ export default function FarmerMap({ farmerMode = true }) {
       )}
     </div>
   );
-}
+});
+
+export default FarmerMap;

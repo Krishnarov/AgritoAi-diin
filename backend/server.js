@@ -11,6 +11,7 @@ import renterRoutes from "./routes/renter.routes.js";
 import farmerRoutes from "./routes/farmer.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import disputeRoutes from "./routes/dispute.routes.js";
+import mapRoutes from "./routes/map.routes.js";
 import { errorHandler } from "./middleware/error.middleware.js";
 
 dotenv.config();
@@ -37,6 +38,7 @@ app.use("/api/renter", renterRoutes);
 app.use("/api/farmer", farmerRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/disputes", disputeRoutes);
+app.use("/api/map", mapRoutes);
 
 // Health check
 app.get("/api/health", (_, res) => res.json({ status: "AgritoAI API running ✅" }));
